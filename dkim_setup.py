@@ -3,8 +3,6 @@
 import argparse
 import subprocess
 import os
-import random
-import string
 
 # This Script must be run as root
 if os.geteuid() != 0:
@@ -74,10 +72,9 @@ with open("/etc/opendkim/trusted.hosts", "a") as f:
     ]
     f.write('\n'.join(trusted_hosts))
 
-# Generate key
-key_name = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-subprocess.run(["opendkim-genkey", "-b", "2048", "-d", domain, "-D", "/etc/opendkim/keys/", "-s", key_name, "-v"], check=True)
-subprocess.run(["chown", "opendkim:opendkim", f"/etc/opendkim/keys/{key_name}.private"], check=True)
+# Generate key using domain name as the selector
+subprocess.run(["opendkim-genkey", "-b", "2048", "-d", domain, "-D", "/etc/opendkim/keys/", "-s", base_domain, "-v"], check=True)
+subprocess.run(["chown", "opendkim:opendkim", f"/etc/opendkim/keys/{base_domain}.private"], check=True)
 
 subprocess.run(["systemctl", "enable", "opendkim"], check=True)
 subprocess.run(["systemctl", "start", "opendkim"], check=True)
